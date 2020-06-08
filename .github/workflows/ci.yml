@@ -1,0 +1,27 @@
+on:
+  push:
+    branches:
+      - '*'
+  pull_request:
+  schedule:
+    - cron:  '13 5 * * *'
+
+name: Continuous Integration
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python: ['3.7']
+    name: Python ${{ matrix.python }} sample
+    steps:
+      - uses: actions/checkout@v2
+      - name: Setup python
+        uses: actions/setup-python@v1
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Install requirements
+        run: pip install semantic-version requests
+      - name: Run
+        run: python pdc.py
