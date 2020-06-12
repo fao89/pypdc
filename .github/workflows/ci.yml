@@ -22,6 +22,6 @@ jobs:
         with:
           python-version: ${{ matrix.python }}
       - name: Install requirements
-        run: pip install semantic-version requests
+        run: pip install -r requirements.txt
       - name: Run
         run: python pdc.py
