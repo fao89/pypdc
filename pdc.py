@@ -2,7 +2,8 @@ import aiohttp
 import asyncio
 
 from aiohttp.client_exceptions import ClientResponseError
-from semantic_version import SimpleSpec, Version
+from packaging.version import Version
+from packaging.requirements import Requirement
 
 PYPI_ROOT = "https://pypi.org/pypi/{}/json"
 PULP_PLUGINS = [
@@ -50,20 +51,16 @@ async def print_compatible_plugins(pulpcore_releases):
             plugin = pypi_data["info"]["name"]
             plugin_version = pypi_data["info"]["version"]
             plugin_requirements = pypi_data["info"]["requires_dist"]
-            pulpcore_requirement = [r for r in plugin_requirements if "pulpcore" in r][0]
-            req = pulpcore_requirement.split("(")[-1].replace(")", "")
-            minor = req.split(".")[-1]
-            for index, c in enumerate(minor):
-                if not c.isdigit():
-                    break
-            index = len(minor) if len(minor) == 1 else index
-            spec = SimpleSpec(req.replace(minor, minor[0:index]))
-            matches = spec.match(Version(pulpcore_version))
-            if matches:
+
+            pulpcore_requirement_for_plugin = Requirement(
+                [r for r in plugin_requirements if "pulpcore" in r][0]
+            )
+            if Version(pulpcore_version) in pulpcore_requirement_for_plugin.specifier:
                 if not shown:
                     print(f"\nCompatible with pulpcore-{pulpcore_version}")
                     shown = True
-                print(f" -> {plugin}-{plugin_version} requirement: {pulpcore_requirement}")
+                full_plugin_name = f"{plugin}-{plugin_version}"
+                print(f" -> {full_plugin_name: <35} requirement: {pulpcore_requirement_for_plugin}")
                 to_remove.append(plugin)
 
 if __name__ == "__main__":
